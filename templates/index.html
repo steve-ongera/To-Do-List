@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Your To-Do List{% endblock %}
+
+{% block content %}
+{% if messages %}
+        <div id="message" class="fade-out">
+            <ul>
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+    <a href="{% url 'add_task' %}">Add New Task</a>
+
+    <ul>
+        {% for task in tasks %}
+            <li>
+                <div>
+                    <strong>{{ task.title }}</strong> - {{ task.message_text }} - {{ task.completed }}
+                </div>
+                <div class="edit-delete">
+                    <a href="{% url 'task_detail' task.id %}">View</a>
+                    <a href="{% url 'update_task' task.id %}">Edit</a>
+                    <a href="{% url 'delete_task' task.id %}">Delete</a>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+
+    
+{% endblock %}

@@ -1,0 +1,28 @@
+{% load static %}
+<nav>
+    <div class="nav-container">
+        <div class="nav-logo">
+            <a href="{% url 'index' %}">
+                <img src="{% static 'img/logo.png' %}" alt="Logo" class="logo"> <!-- Logo image -->
+            </a>
+        </div>
+        <ul>
+            <li><a href="{% url 'index' %}">Home</a></li>
+
+            {% if user.is_authenticated %}
+                <li>
+                    <!-- Display the user's profile picture -->
+                    <a href="{% url 'profile_update' %}">
+                        <img src="{% if user.profile.profile_picture %}{{ user.profile.profile_picture.url }}{% else %}{% static 'profile/default.png' %}{% endif %}" 
+                             alt="Profile Picture" 
+                             class="profile-pic-nav">
+                    </a>
+                </li>
+                <li><a href="{% url 'user_logout' %}">Logout</a></li>
+            {% else %}
+                <li><a href="{% url 'user_login' %}">Login</a></li>
+                <li><a href="{% url 'register' %}">Register</a></li>
+            {% endif %}
+        </ul>
+    </div>
+</nav>
