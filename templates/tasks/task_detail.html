@@ -1,0 +1,365 @@
+<!-- templates/tasks/task_detail.html -->
+{% extends 'base.html' %}
+
+{% block title %}{{ task.title }} - Todo Pro{% endblock %}
+{% block page_title %}Task Details{% endblock %}
+
+{% block header_actions %}
+    <div class="d-flex gap-2">
+        <a href="{% url 'task_update' task.id %}" class="btn btn-primary">
+            <i class="fas fa-edit"></i> Edit
+        </a>
+        <a href="{% url 'task_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+    </div>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Task Details Card -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-tasks me-2"></i>{{ task.title }}
+                </h5>
+                <div class="d-flex gap-2">
+                    <span class="priority-badge priority-{{ task.priority }}">
+                        {{ task.get_priority_display }}
+                    </span>
+                    <span class="status-badge status-{{ task.status }}">
+                        {{ task.get_status_display }}
+                    </span>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Task Status Toggle -->
+                <div class="d-flex align-items-center mb-4 p-3 bg-light rounded">
+                    <input type="checkbox" 
+                           class="form-check-input me-3" 
+                           style="transform: scale(1.5);"
+                           {% if task.completed %}checked{% endif %}
+                           onchange="toggleTask({{ task.id }})"
+                           id="taskToggle">
+                    <label for="taskToggle" class="form-check-label">
+                        <strong>
+                            {% if task.completed %}
+                                <span class="text-success">
+                                    <i class="fas fa-check-circle me-1"></i>Task Completed
+                                </span>
+                            {% else %}
+                                <span class="text-warning">
+                                    <i class="fas fa-clock me-1"></i>Mark as Complete
+                                </span>
+                            {% endif %}
+                        </strong>
+                    </label>
+                </div>
+
+                <!-- Description -->
+                {% if task.description %}
+                    <div class="mb-4">
+                        <h6><i class="fas fa-align-left me-2"></i>Description</h6>
+                        <p class="text-muted">{{ task.description|linebreaks }}</p>
+                    </div>
+                {% endif %}
+
+                <!-- Task Details Grid -->
+                <div class="row">
+                    {% if task.category %}
+                        <div class="col-md-6 mb-3">
+                            <h6><i class="fas fa-tag me-2"></i>Category</h6>
+                            <span class="badge" style="background-color: {{ task.category.color }}; color: white;">
+                                {{ task.category.name }}
+                            </span>
+                            {% if task.category.description %}
+                                <small class="d-block text-muted mt-1">{{ task.category.description }}</small>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
+                    {% if task.estimated_hours %}
+                        <div class="col-md-6 mb-3">
+                            <h6><i class="fas fa-hourglass-half me-2"></i>Estimated Time</h6>
+                            <p class="mb-0">{{ task.estimated_hours }} hours</p>
+                        </div>
+                    {% endif %}
+
+                    {% if task.due_date %}
+                        <div class="col-md-6 mb-3">
+                            <h6><i class="fas fa-calendar-alt me-2"></i>Due Date</h6>
+                            <p class="mb-0 {% if task.is_overdue %}text-danger{% endif %}">
+                                {{ task.due_date|date:"F d, Y g:i A" }}
+                                {% if task.is_overdue %}
+                                    <i class="fas fa-exclamation-triangle ms-2"></i>
+                                    <small class="d-block">Overdue by {{ task.days_until_due|add:'-1' }} days</small>
+                                {% elif task.days_until_due %}
+                                    <small class="d-block text-muted">
+                                        {% if task.days_until_due == 0 %}
+                                            Due today
+                                        {% elif task.days_until_due == 1 %}
+                                            Due tomorrow
+                                        {% else %}
+                                            Due in {{ task.days_until_due }} days
+                                        {% endif %}
+                                    </small>
+                                {% endif %}
+                            </p>
+                        </div>
+                    {% endif %}
+
+                    <div class="col-md-6 mb-3">
+                        <h6><i class="fas fa-calendar-plus me-2"></i>Created</h6>
+                        <p class="mb-0">{{ task.created_at|date:"F d, Y g:i A" }}</p>
+                        <small class="text-muted">{{ task.created_at|timesince }} ago</small>
+                    </div>
+
+                    {% if task.completed_at %}
+                        <div class="col-md-6 mb-3">
+                            <h6><i class="fas fa-check-circle me-2 text-success"></i>Completed</h6>
+                            <p class="mb-0">{{ task.completed_at|date:"F d, Y g:i A" }}</p>
+                            <small class="text-muted">{{ task.completed_at|timesince }} ago</small>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Tags -->
+                {% if task.tags %}
+                    <div class="mb-4">
+                        <h6><i class="fas fa-hashtag me-2"></i>Tags</h6>
+                        <div class="d-flex flex-wrap gap-1">
+                            {% for tag in task.get_tags_list %}
+                                <span class="badge bg-light text-dark">#{{ tag }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- Notes -->
+                {% if task.notes %}
+                    <div class="mb-4">
+                        <h6><i class="fas fa-sticky-note me-2"></i>Notes</h6>
+                        <div class="p-3 bg-light rounded">
+                            <p class="mb-0">{{ task.notes|linebreaks }}</p>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- Attachment -->
+                {% if task.attachment %}
+                    <div class="mb-4">
+                        <h6><i class="fas fa-paperclip me-2"></i>Attachment</h6>
+                        <div class="p-3 bg-light rounded">
+                            <a href="{{ task.attachment.url }}" 
+                               target="_blank" 
+                               class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-download me-2"></i>
+                                Download {{ task.attachment.name }}
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar with Actions and Info -->
+    <div class="col-lg-4">
+        <!-- Quick Actions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'task_update' task.id %}" class="btn btn-primary">
+                        <i class="fas fa-edit me-2"></i>Edit Task
+                    </a>
+                    
+                    {% if not task.completed %}
+                        <button onclick="toggleTask({{ task.id }})" class="btn btn-success">
+                            <i class="fas fa-check me-2"></i>Mark Complete
+                        </button>
+                    {% else %}
+                        <button onclick="toggleTask({{ task.id }})" class="btn btn-warning">
+                            <i class="fas fa-undo me-2"></i>Mark Incomplete
+                        </button>
+                    {% endif %}
+                    
+                    <a href="{% url 'task_delete' task.id %}" 
+                       class="btn btn-danger"
+                       onclick="return confirm('Are you sure you want to delete this task?')">
+                        <i class="fas fa-trash me-2"></i>Delete Task
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Task Timeline -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-history me-2"></i>Timeline</h6>
+            </div>
+            <div class="card-body">
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-primary"></div>
+                        <div class="timeline-content">
+                            <small class="text-muted">{{ task.created_at|date:"M d, Y g:i A" }}</small>
+                            <p class="mb-0">Task created</p>
+                        </div>
+                    </div>
+                    
+                    {% if task.updated_at != task.created_at %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-info"></div>
+                            <div class="timeline-content">
+                                <small class="text-muted">{{ task.updated_at|date:"M d, Y g:i A" }}</small>
+                                <p class="mb-0">Last updated</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    {% if task.completed_at %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-success"></div>
+                            <div class="timeline-content">
+                                <small class="text-muted">{{ task.completed_at|date:"M d, Y g:i A" }}</small>
+                                <p class="mb-0">Task completed</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Related Tasks -->
+        {% if task.category %}
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-layer-group me-2"></i>Related Tasks</h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small mb-3">Other tasks in "{{ task.category.name }}" category:</p>
+                    <!-- This would need to be passed from the view -->
+                    <small class="text-muted">
+                        <a href="{% url 'task_list' %}?category={{ task.category.id }}" class="text-decoration-none">
+                            View all {{ task.category.name }} tasks →
+                        </a>
+                    </small>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 10px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #e2e8f0;
+    }
+
+    .timeline-item {
+        position: relative;
+        margin-bottom: 20px;
+    }
+
+    .timeline-marker {
+        position: absolute;
+        left: -25px;
+        top: 5px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: 2px solid white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .timeline-content {
+        padding-left: 10px;
+    }
+</style>
+
+<script>
+    // Enhanced task toggle with visual feedback
+    function toggleTask(taskId) {
+        const checkbox = document.getElementById('taskToggle');
+        const submitButton = document.querySelector('.btn.btn-success, .btn.btn-warning');
+        
+        // Show loading state
+        checkbox.disabled = true;
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<span class="spinner me-2"></span>Updating...';
+        
+        fetch(`/tasks/${taskId}/toggle/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Reload page to show updated status
+                location.reload();
+            } else {
+                showToast('Failed to update task status', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Network error occurred', 'error');
+        })
+        .finally(() => {
+            checkbox.disabled = false;
+            submitButton.disabled = false;
+        });
+    }
+
+    // Toast notification function
+    function showToast(message, type = 'info') {
+        const toastContainer = document.querySelector('.toast-container') || createToastContainer();
+        
+        const toast = document.createElement('div');
+        toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'} border-0`;
+        toast.setAttribute('role', 'alert');
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'exclamation-triangle' : 'info'} me-2"></i>
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        `;
+        
+        toastContainer.appendChild(toast);
+        const bsToast = new bootstrap.Toast(toast);
+        bsToast.show();
+        
+        toast.addEventListener('hidden.bs.toast', () => {
+            toast.remove();
+        });
+    }
+
+    function createToastContainer() {
+        const container = document.createElement('div');
+        container.className = 'toast-container position-fixed top-0 end-0 p-3';
+        container.style.zIndex = '11';
+        document.body.appendChild(container);
+        return container;
+    }
+</script>
+{% endblock %}

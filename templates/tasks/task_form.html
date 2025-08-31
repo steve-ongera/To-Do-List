@@ -1,0 +1,398 @@
+<!-- templates/tasks/task_form.html -->
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Todo Pro{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block header_actions %}
+    <a href="{% url 'task_list' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Tasks
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-{% if task %}edit{% else %}plus{% endif %} me-2"></i>
+                    {{ title }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data" id="taskForm">
+                    {% csrf_token %}
+                    
+                    <!-- Title -->
+                    <div class="mb-3">
+                        <label for="{{ form.title.id_for_label }}" class="form-label">
+                            <i class="fas fa-heading me-2"></i>Task Title <span class="text-danger">*</span>
+                        </label>
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.title.errors }}
+                            </div>
+                        {% endif %}
+                        <small class="text-muted">Give your task a clear, descriptive title</small>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">
+                            <i class="fas fa-align-left me-2"></i>Description
+                        </label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.description.errors }}
+                            </div>
+                        {% endif %}
+                        <small class="text-muted">Provide additional details about this task</small>
+                    </div>
+
+                    <!-- Category, Priority, Status Row -->
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.category.id_for_label }}" class="form-label">
+                                <i class="fas fa-tag me-2"></i>Category
+                            </label>
+                            {{ form.category }}
+                            {% if form.category.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.category.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.priority.id_for_label }}" class="form-label">
+                                <i class="fas fa-exclamation-circle me-2"></i>Priority
+                            </label>
+                            {{ form.priority }}
+                            {% if form.priority.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.priority.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.status.id_for_label }}" class="form-label">
+                                <i class="fas fa-flag me-2"></i>Status
+                            </label>
+                            {{ form.status }}
+                            {% if form.status.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.status.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Due Date and Estimated Hours -->
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.due_date.id_for_label }}" class="form-label">
+                                <i class="fas fa-calendar-alt me-2"></i>Due Date
+                            </label>
+                            {{ form.due_date }}
+                            {% if form.due_date.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.due_date.errors }}
+                                </div>
+                            {% endif %}
+                            <small class="text-muted">When should this task be completed?</small>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.estimated_hours.id_for_label }}" class="form-label">
+                                <i class="fas fa-hourglass-half me-2"></i>Estimated Hours
+                            </label>
+                            {{ form.estimated_hours }}
+                            {% if form.estimated_hours.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.estimated_hours.errors }}
+                                </div>
+                            {% endif %}
+                            <small class="text-muted">How long will this take? (e.g., 2.5)</small>
+                        </div>
+                    </div>
+
+                    <!-- Tags -->
+                    <div class="mb-3">
+                        <label for="{{ form.tags.id_for_label }}" class="form-label">
+                            <i class="fas fa-hashtag me-2"></i>Tags
+                        </label>
+                        {{ form.tags }}
+                        {% if form.tags.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.tags.errors }}
+                            </div>
+                        {% endif %}
+                        <small class="text-muted">Add comma-separated tags (e.g., work, urgent, meeting)</small>
+                        
+                        <!-- Popular tags suggestion -->
+                        <div class="mt-2">
+                            <small class="text-muted">Popular tags:</small>
+                            <div class="d-flex flex-wrap gap-1 mt-1">
+                                <button type="button" class="btn btn-outline-secondary btn-sm tag-suggestion" data-tag="work">work</button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm tag-suggestion" data-tag="personal">personal</button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm tag-suggestion" data-tag="urgent">urgent</button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm tag-suggestion" data-tag="meeting">meeting</button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm tag-suggestion" data-tag="project">project</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="mb-3">
+                        <label for="{{ form.notes.id_for_label }}" class="form-label">
+                            <i class="fas fa-sticky-note me-2"></i>Notes
+                        </label>
+                        {{ form.notes }}
+                        {% if form.notes.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.notes.errors }}
+                            </div>
+                        {% endif %}
+                        <small class="text-muted">Any additional notes or reminders</small>
+                    </div>
+
+                    <!-- Attachment -->
+                    <div class="mb-4">
+                        <label for="{{ form.attachment.id_for_label }}" class="form-label">
+                            <i class="fas fa-paperclip me-2"></i>Attachment
+                        </label>
+                        {{ form.attachment }}
+                        {% if form.attachment.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.attachment.errors }}
+                            </div>
+                        {% endif %}
+                        <small class="text-muted">Attach a file related to this task (optional)</small>
+                        
+                        {% if task and task.attachment %}
+                            <div class="mt-2 p-2 bg-light rounded">
+                                <small class="text-muted">Current file:</small>
+                                <a href="{{ task.attachment.url }}" target="_blank" class="d-block">
+                                    <i class="fas fa-file me-1"></i>{{ task.attachment.name }}
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="d-flex gap-3">
+                        <button type="submit" class="btn btn-primary flex-fill">
+                            <i class="fas fa-save me-2"></i>
+                            {{ button_text }}
+                        </button>
+                        <a href="{% url 'task_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Quick Tips Card -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Quick Tips</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <strong>Clear titles</strong> help you find tasks quickly
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-clock text-warning me-2"></i>
+                        <strong>Set due dates</strong> to stay on track
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-tag text-info me-2"></i>
+                        <strong>Use tags</strong> to organize and search tasks
+                    </li>
+                    <li class="mb-0">
+                        <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+                        <strong>Set priority</strong> to focus on what matters most
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Tag suggestions functionality
+        const tagInput = document.getElementById('id_tags');
+        const tagSuggestions = document.querySelectorAll('.tag-suggestion');
+        
+        tagSuggestions.forEach(function(button) {
+            button.addEventListener('click', function() {
+                const tag = this.getAttribute('data-tag');
+                const currentTags = tagInput.value.trim();
+                
+                if (currentTags === '') {
+                    tagInput.value = tag;
+                } else if (!currentTags.split(',').map(t => t.trim()).includes(tag)) {
+                    tagInput.value = currentTags + ', ' + tag;
+                }
+                
+                // Visual feedback
+                this.classList.add('btn-success');
+                this.classList.remove('btn-outline-secondary');
+                setTimeout(() => {
+                    this.classList.remove('btn-success');
+                    this.classList.add('btn-outline-secondary');
+                }, 1000);
+            });
+        });
+
+        // Character counter for title
+        const titleInput = document.getElementById('id_title');
+        const titleCounter = document.createElement('small');
+        titleCounter.className = 'text-muted float-end';
+        titleInput.parentNode.appendChild(titleCounter);
+        
+        function updateTitleCounter() {
+            const remaining = 200 - titleInput.value.length;
+            titleCounter.textContent = `${remaining} characters remaining`;
+            titleCounter.className = remaining < 20 ? 'text-danger float-end' : 'text-muted float-end';
+        }
+        
+        titleInput.addEventListener('input', updateTitleCounter);
+        updateTitleCounter();
+
+        // File upload preview
+        const fileInput = document.getElementById('id_attachment');
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const preview = document.createElement('div');
+                preview.className = 'mt-2 p-2 bg-light rounded';
+                preview.innerHTML = `
+                    <small class="text-muted">Selected file:</small>
+                    <div><i class="fas fa-file me-1"></i>${file.name} (${(file.size / 1024).toFixed(1)} KB)</div>
+                `;
+                
+                // Remove existing preview
+                const existingPreview = fileInput.parentNode.querySelector('.mt-2.p-2.bg-light');
+                if (existingPreview && !existingPreview.querySelector('a')) {
+                    existingPreview.remove();
+                }
+                
+                fileInput.parentNode.appendChild(preview);
+            }
+        });
+
+        // Auto-save to localStorage (for recovery)
+        const formElements = document.querySelectorAll('#taskForm input, #taskForm textarea, #taskForm select');
+        const formKey = 'taskForm_' + (new URLSearchParams(window.location.search).get('task_id') || 'new');
+        
+        // Load saved data
+        const savedData = JSON.parse(localStorage.getItem(formKey) || '{}');
+        Object.keys(savedData).forEach(function(fieldName) {
+            const field = document.querySelector(`[name="${fieldName}"]`);
+            if (field && field.type !== 'file') {
+                field.value = savedData[fieldName];
+            }
+        });
+        
+        // Save data on change
+        formElements.forEach(function(element) {
+            element.addEventListener('change', function() {
+                const formData = {};
+                formElements.forEach(function(el) {
+                    if (el.type !== 'file') {
+                        formData[el.name] = el.value;
+                    }
+                });
+                localStorage.setItem(formKey, JSON.stringify(formData));
+            });
+        });
+        
+        // Clear saved data on successful submit
+        document.getElementById('taskForm').addEventListener('submit', function() {
+            localStorage.removeItem(formKey);
+        });
+
+        // Due date smart defaults
+        const dueDateInput = document.getElementById('id_due_date');
+        if (!dueDateInput.value) {
+            // Set default due date to tomorrow at 5 PM
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(17, 0, 0, 0);
+            
+            const year = tomorrow.getFullYear();
+            const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
+            const day = String(tomorrow.getDate()).padStart(2, '0');
+            const hours = String(tomorrow.getHours()).padStart(2, '0');
+            const minutes = String(tomorrow.getMinutes()).padStart(2, '0');
+            
+            dueDateInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+
+        // Quick date buttons
+        const quickDateContainer = document.createElement('div');
+        quickDateContainer.className = 'mt-2 d-flex flex-wrap gap-1';
+        quickDateContainer.innerHTML = `
+            <small class="text-muted me-2">Quick set:</small>
+            <button type="button" class="btn btn-outline-secondary btn-sm quick-date" data-days="0">Today</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm quick-date" data-days="1">Tomorrow</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm quick-date" data-days="7">Next Week</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm quick-date" data-days="30">Next Month</button>
+        `;
+        
+        dueDateInput.parentNode.appendChild(quickDateContainer);
+        
+        document.querySelectorAll('.quick-date').forEach(function(button) {
+            button.addEventListener('click', function() {
+                const days = parseInt(this.getAttribute('data-days'));
+                const date = new Date();
+                date.setDate(date.getDate() + days);
+                date.setHours(17, 0, 0, 0); // 5 PM
+                
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                
+                dueDateInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+                
+                // Visual feedback
+                this.classList.add('btn-primary');
+                this.classList.remove('btn-outline-secondary');
+                setTimeout(() => {
+                    this.classList.remove('btn-primary');
+                    this.classList.add('btn-outline-secondary');
+                }, 1000);
+            });
+        });
+    });
+
+    // Form validation enhancement
+    document.getElementById('taskForm').addEventListener('submit', function(e) {
+        const title = document.getElementById('id_title').value.trim();
+        
+        if (title.length < 3) {
+            e.preventDefault();
+            alert('Task title must be at least 3 characters long.');
+            document.getElementById('id_title').focus();
+            return false;
+        }
+        
+        // Show loading state
+        const submitBtn = this.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner me-2"></span>Saving Task...';
+    });
+</script>
+{% endblock %}
