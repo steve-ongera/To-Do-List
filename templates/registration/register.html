@@ -1,13 +1,203 @@
+<!-- templates/registration/register.html -->
 {% extends 'base.html' %}
 
-{% block title %}Register{% endblock %}
+{% block title %}Register - Todo Pro{% endblock %}
 
-{% block content %}
-    <h2>Register</h2>
-    <form method="POST">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Register</button>
-    </form>
-    <a href="{% url 'user_login' %}">Already have an account? Log in here</a>
+{% block auth_content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h2><i class="fas fa-user-plus text-primary"></i> Join Todo Pro</h2>
+            <p>Create your account to start organizing your tasks</p>
+        </div>
+
+        <!-- Messages -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    <i class="fas fa-info-circle me-2"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post" id="registerForm">
+            {% csrf_token %}
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.first_name.id_for_label }}" class="form-label">
+                        <i class="fas fa-user me-2"></i>First Name
+                    </label>
+                    {{ form.first_name }}
+                    {% if form.first_name.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.first_name.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.last_name.id_for_label }}" class="form-label">
+                        <i class="fas fa-user me-2"></i>Last Name
+                    </label>
+                    {{ form.last_name }}
+                    {% if form.last_name.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.last_name.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.username.id_for_label }}" class="form-label">
+                    <i class="fas fa-at me-2"></i>Username <span class="text-danger">*</span>
+                </label>
+                {{ form.username }}
+                {% if form.username.errors %}
+                    <div class="text-danger small mt-1">
+                        {{ form.username.errors }}
+                    </div>
+                {% endif %}
+                <small class="text-muted">Choose a unique username for your account</small>
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.email.id_for_label }}" class="form-label">
+                    <i class="fas fa-envelope me-2"></i>Email Address <span class="text-danger">*</span>
+                </label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                    <div class="text-danger small mt-1">
+                        {{ form.email.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.password1.id_for_label }}" class="form-label">
+                    <i class="fas fa-lock me-2"></i>Password <span class="text-danger">*</span>
+                </label>
+                <div class="position-relative">
+                    {{ form.password1 }}
+                    <button type="button" 
+                            class="btn btn-outline-secondary position-absolute top-50 end-0 translate-middle-y me-2" 
+                            onclick="togglePassword('password1')" 
+                            style="border: none; background: none; z-index: 10;">
+                        <i class="fas fa-eye" id="password1ToggleIcon"></i>
+                    </button>
+                </div>
+                {% if form.password1.errors %}
+                    <div class="text-danger small mt-1">
+                        {{ form.password1.errors }}
+                    </div>
+                {% endif %}
+                <small class="text-muted">
+                    Use simple passwords like "monkey", "step1", or "hello123" for easy access
+                </small>
+            </div>
+
+            <div class="mb-4">
+                <label for="{{ form.password2.id_for_label }}" class="form-label">
+                    <i class="fas fa-lock me-2"></i>Confirm Password <span class="text-danger">*</span>
+                </label>
+                <div class="position-relative">
+                    {{ form.password2 }}
+                    <button type="button" 
+                            class="btn btn-outline-secondary position-absolute top-50 end-0 translate-middle-y me-2" 
+                            onclick="togglePassword('password2')" 
+                            style="border: none; background: none; z-index: 10;">
+                        <i class="fas fa-eye" id="password2ToggleIcon"></i>
+                    </button>
+                </div>
+                {% if form.password2.errors %}
+                    <div class="text-danger small mt-1">
+                        {{ form.password2.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 mb-3">
+                <i class="fas fa-user-plus me-2"></i>
+                Create Account
+            </button>
+        </form>
+
+        <div class="text-center">
+            <p class="text-muted mb-3">Already have an account?</p>
+            <a href="{% url 'login' %}" class="btn btn-outline-primary w-100">
+                <i class="fas fa-sign-in-alt me-2"></i>
+                Sign In
+            </a>
+        </div>
+
+        <!-- Registration Flow Info -->
+        <div class="mt-4 p-3 bg-light rounded">
+            <small class="text-muted">
+                <strong>Next Steps:</strong><br>
+                1. Create your account<br>
+                2. Set up your profile<br>
+                3. Start managing your tasks!
+            </small>
+        </div>
+    </div>
+</div>
+
+<script>
+    function togglePassword(fieldId) {
+        const passwordField = document.getElementById(`id_${fieldId}`);
+        const toggleIcon = document.getElementById(`${fieldId}ToggleIcon`);
+        
+        if (passwordField.type === 'password') {
+            passwordField.type = 'text';
+            toggleIcon.classList.remove('fa-eye');
+            toggleIcon.classList.add('fa-eye-slash');
+        } else {
+            passwordField.type = 'password';
+            toggleIcon.classList.remove('fa-eye-slash');
+            toggleIcon.classList.add('fa-eye');
+        }
+    }
+
+    // Auto-fill demo data
+    document.addEventListener('DOMContentLoaded', function() {
+        const demoButton = document.createElement('button');
+        demoButton.type = 'button';
+        demoButton.className = 'btn btn-outline-info btn-sm mt-2';
+        demoButton.innerHTML = '<i class="fas fa-magic me-1"></i> Fill Demo Data';
+        demoButton.onclick = function() {
+            document.getElementById('id_username').value = 'demo_user_' + Math.floor(Math.random() * 1000);
+            document.getElementById('id_first_name').value = 'Demo';
+            document.getElementById('id_last_name').value = 'User';
+            document.getElementById('id_email').value = 'demo@example.com';
+            document.getElementById('id_password1').value = 'monkey';
+            document.getElementById('id_password2').value = 'monkey';
+        };
+        
+        document.querySelector('.auth-card').appendChild(demoButton);
+    });
+
+    // Password strength indicator
+    document.addEventListener('DOMContentLoaded', function() {
+        const password1 = document.getElementById('id_password1');
+        const password2 = document.getElementById('id_password2');
+        
+        function checkPasswordMatch() {
+            if (password1.value && password2.value) {
+                if (password1.value === password2.value) {
+                    password2.classList.remove('is-invalid');
+                    password2.classList.add('is-valid');
+                } else {
+                    password2.classList.remove('is-valid');
+                    password2.classList.add('is-invalid');
+                }
+            }
+        }
+        
+        password1.addEventListener('input', checkPasswordMatch);
+        password2.addEventListener('input', checkPasswordMatch);
+    });
+</script>
 {% endblock %}

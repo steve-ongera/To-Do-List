@@ -1,0 +1,188 @@
+<!-- templates/registration/setup_profile.html -->
+{% extends 'base.html' %}
+
+{% block title %}Setup Profile - Todo Pro{% endblock %}
+
+{% block auth_content %}
+<div class="auth-container">
+    <div class="auth-card" style="max-width: 600px;">
+        <div class="auth-header">
+            <h2><i class="fas fa-user-circle text-primary"></i> Setup Your Profile</h2>
+            <p>Welcome {{ user.username }}! Let's personalize your account</p>
+        </div>
+
+        <!-- Progress Indicator -->
+        <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <small class="text-muted">Setup Progress</small>
+                <small class="text-muted">Step 2 of 3</small>
+            </div>
+            <div class="progress" style="height: 8px;">
+                <div class="progress-bar bg-primary" role="progressbar" style="width: 66%"></div>
+            </div>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" id="profileForm">
+            {% csrf_token %}
+            
+            <div class="row">
+                <div class="col-12 mb-4 text-center">
+                    <div class="profile-picture-upload">
+                        <div class="current-picture mb-3">
+                            {% if form.instance.profile_picture %}
+                                <img src="{{ form.instance.profile_picture.url }}" 
+                                     alt="Profile" 
+                                     class="rounded-circle" 
+                                     style="width: 100px; height: 100px; object-fit: cover;">
+                            {% else %}
+                                <div class="bg-secondary rounded-circle d-inline-flex align-items-center justify-content-center" 
+                                     style="width: 100px; height: 100px;">
+                                    <i class="fas fa-user fa-3x text-white"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <label for="{{ form.profile_picture.id_for_label }}" class="form-label">
+                            <i class="fas fa-camera me-2"></i>Profile Picture
+                        </label>
+                        {{ form.profile_picture }}
+                        {% if form.profile_picture.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.profile_picture.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.bio.id_for_label }}" class="form-label">
+                    <i class="fas fa-info-circle me-2"></i>Bio
+                </label>
+                {{ form.bio }}
+                {% if form.bio.errors %}
+                    <div class="text-danger small mt-1">
+                        {{ form.bio.errors }}
+                    </div>
+                {% endif %}
+                <small class="text-muted">Tell others about yourself (optional)</small>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.phone_number.id_for_label }}" class="form-label">
+                        <i class="fas fa-phone me-2"></i>Phone Number
+                    </label>
+                    {{ form.phone_number }}
+                    {% if form.phone_number.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.phone_number.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.date_of_birth.id_for_label }}" class="form-label">
+                        <i class="fas fa-birthday-cake me-2"></i>Date of Birth
+                    </label>
+                    {{ form.date_of_birth }}
+                    {% if form.date_of_birth.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.date_of_birth.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.location.id_for_label }}" class="form-label">
+                        <i class="fas fa-map-marker-alt me-2"></i>Location
+                    </label>
+                    {{ form.location }}
+                    {% if form.location.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.location.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-6 mb-4">
+                    <label for="{{ form.website.id_for_label }}" class="form-label">
+                        <i class="fas fa-globe me-2"></i>Website
+                    </label>
+                    {{ form.website }}
+                    {% if form.website.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.website.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="d-flex gap-3">
+                <button type="submit" class="btn btn-primary flex-fill">
+                    <i class="fas fa-save me-2"></i>
+                    Complete Setup
+                </button>
+                <a href="{% url 'login' %}" class="btn btn-outline-secondary">
+                    Skip for Now
+                </a>
+            </div>
+        </form>
+
+        <!-- Setup Benefits -->
+        <div class="mt-4 p-3 bg-light rounded">
+            <small class="text-muted">
+                <strong>Why complete your profile?</strong><br>
+                • Personalize your todo experience<br>
+                • Get better task recommendations<br>
+                • Connect with team members (coming soon)
+            </small>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Preview uploaded image
+    document.addEventListener('DOMContentLoaded', function() {
+        const fileInput = document.getElementById('id_profile_picture');
+        const currentPicture = document.querySelector('.current-picture img, .current-picture div');
+        
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    if (currentPicture.tagName === 'IMG') {
+                        currentPicture.src = e.target.result;
+                    } else {
+                        // Replace div with img
+                        const newImg = document.createElement('img');
+                        newImg.src = e.target.result;
+                        newImg.alt = 'Profile';
+                        newImg.className = 'rounded-circle';
+                        newImg.style.cssText = 'width: 100px; height: 100px; object-fit: cover;';
+                        currentPicture.parentNode.replaceChild(newImg, currentPicture);
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Auto-fill demo data
+        const demoButton = document.createElement('button');
+        demoButton.type = 'button';
+        demoButton.className = 'btn btn-outline-info btn-sm mt-2';
+        demoButton.innerHTML = '<i class="fas fa-magic me-1"></i> Fill Demo Data';
+        demoButton.onclick = function() {
+            document.getElementById('id_bio').value = 'I love organizing my tasks and staying productive!';
+            document.getElementById('id_phone_number').value = '+1-555-0123';
+            document.getElementById('id_location').value = 'San Francisco, CA';
+            document.getElementById('id_website').value = 'https://myportfolio.com';
+        };
+        
+        document.querySelector('.auth-card').appendChild(demoButton);
+    });
+</script>
+{% endblock %}
