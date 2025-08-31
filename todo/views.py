@@ -12,6 +12,8 @@ from .forms import (
     CustomUserCreationForm, ProfileForm, TaskForm, 
     PasswordChangeForm, TaskFilterForm
 )
+from django.utils import timezone
+
 
 
 def home_view(request):
